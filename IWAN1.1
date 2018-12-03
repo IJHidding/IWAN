@@ -11,6 +11,16 @@ function config () {
 	Ensembl=$(grep 'Ensembl' config | cut -d '=' -f2)
 }
 ###############################################################################################################
+#This catch makes sure that the program exits clean on error
+###############################################################################################################
+function catch_error () {
+        ## deleting files created in the program.
+        rm -rf $tmpdir
+	echo "Error detected, ending program, cleaning up files."
+	exit
+}
+
+###############################################################################################################
 #These functions call the help and information for users. 
 #It also gives a list of the available tissue types.
 ###################################HELP AND INFORMATION########################################################
@@ -33,6 +43,9 @@ Options:
 	Optional:
 	-t	Specific tissuetypes for expression data.
 	-l	Show available tissuetypes.
+	-d	Debugging mode, this does not end the program on errors. And will prevent deletion of any made
+		files, these files can be seen in ./IWAN_output/tmp
+		
 
 Output will be written in ./IWAN_output
 ===============================================================================================================
@@ -123,6 +136,7 @@ function Analysis_script () {
 
 	bedtools sort -i $inputfile > ${tmpdir}tmp && mv ${tmpdir}tmp $inputfile
 	cat $header $inputfile > ${tmpdir}bedtoolsfile.vcf
+	
 	#This loop performs bedtools on the input and each of the Jasparbed files with locations of the binding sites.
 	for f in ${Jaspardatafile}MA*; do
 	        local filename=$(basename -- "$f" .bed)
@@ -238,8 +252,6 @@ function Validation_script () {
 	#Preparing and running bedtools on encode data.
 	cat $header $input > ${tmpdir}filewithheader.vcf
 	bedtools intersect -a ${tmpdir}filewithheader.vcf -wb -b $encodedata > ${tmpdir}encodedatafile.tmp
-
-	#rm ${tmpdir}filewithheader.vcf
 
 	local columnfoundsite=$((numberofcolumns+10))
 	local columnvalidatedsite=$((numberofcolumns+16))
@@ -421,9 +433,9 @@ function Info_Script () {
 ########################################MAIN###################################################################
 
 #Creating the help and input options
-while getopts "i:t:h:l" opt;
+while getopts "i:t:h:l:d" opt;
 do
-        case $opt in h)showHelp;; i)input="${OPTARG}";; t)tissue="${OPTARG}";; l)TissueList;;
+        case $opt in h)showHelp;; i)input="${OPTARG}";; t)tissue="${OPTARG}";; l)TissueList;; d)debug="ON";;
         esac
 done
 
@@ -434,7 +446,8 @@ if [[ -z "${input:-}" ]]; then showHelp ; echo "No input is given" ; fi
 output="IWAN_output/"
 tmpdir="IWAN_output/tmp/"
 
-
+#Checks if debugging is on. This will enable the catch_error function is debugging is not on.
+if [ ! "$debug" == "ON"  ]; then trap catch_error ERR; fi
 
 #Creating tmp and output directories to store created files.
 if [ ! -d "$output" ]; then mkdir IWAN_output ; fi
@@ -475,8 +488,7 @@ grep -v '#' $fixedinput | grep '5_prime_UTR'  | tr ' ' '_' >> ${tmpdir}startfile
 
 
 #checks if the input file has "1" or "chr1" as chromosome annotation. 
-grep 'chr' $fixedinput > ${tmpdir}test.tmp
-if [ -s ${tmpdir}test.tmp ];
+if [ ! -z "$(grep 'chr' $fixedinput)" ];
 then
         chr="+"
 else
@@ -527,10 +539,14 @@ rm ${tmpdir}/*
 echo "Analysis completed, have a nice day!"
 
 ###############################################################################################################
-
+#This function is run at the end of the script to delete any tmp files made during the program.
+#Debug mode leaves the files to check for errors.
 #######################################FINISHING UP############################################################
 
-## deleting files created in the program.
+function finish () {
+	## deleting files created in the program.
+	rm -rf $tmpdir
+}
 
-rm -rf $tmpdir
+if [ ! "$debug" == "ON"  ]; then finish; fi
 ###############################################################################################################
