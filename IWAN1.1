@@ -222,7 +222,7 @@ function Analysis_script () {
 	#This turns the whitespaces into tabs that are caused by storing the lines in a variable.
 	tr ' ' \\t < ${tmpdir}output.txt > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
 	#This line removes any empty lines or lines with just whitespaces from the file.
-	sed -i '1{/^[[:space:]]*$/d}' ${tmpdir}output.txt
+	sed '/^[[:space:]]*$/d' ${tmpdir}output.txt > tmp && mv tmp ${tmpdir}output.txt
 	#This set of lines prepares the file for a new bedtools input finds the closest gene and adds that information to the data.
 	bedtools sort -i ${tmpdir}output.txt > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
 	cat $header ${tmpdir}output.txt > ${tmpdir}tmp && mv ${tmpdir}tmp  ${tmpdir}output.vcf
@@ -299,32 +299,32 @@ function Tissue_types () {
 		
 		#This combines all the expressionvalues of the genes and later the transcriptionfactor and adds them to a file. 
 		#This way they can be pasted together onto the inputfile. 
-	        if [ -f ${tmpdir}Geneexprssval.tmp ];
+	        if [ -f ${tmpdir}Geneexprssval2.tmp ];
 	        then
-	                paste ${tmpdir}Geneexprssval.tmp ${tmpdir}geneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Geneexprssval.tmp
+	                paste ${tmpdir}Geneexprssval2.tmp ${tmpdir}geneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Geneexprssval2.tmp
 	        else
-	                paste ${tmpdir}geneexprssval.tmp > ${tmpdir}Geneexprssval.tmp
+	                paste ${tmpdir}geneexprssval.tmp > ${tmpdir}Geneexprssval2.tmp
 	        fi
 
 		#Separation of the different expressionvalues by a "/".
-	        tr '\t' '/' < ${tmpdir}Geneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Geneexprssval.tmp
+	        tr '\t' '/' < ${tmpdir}Geneexprssval2.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Geneexprssval2.tmp
 	        rm ${tmpdir}geneexprssval.tmp
 	        for gene in $(cut -d$'\t' -f${columnwithTFgenename} $input); do
 	                grep  $'\t'${gene}$'\t' $genexprss | cut -d$'\t' -f${numb} > ${tmpdir}genebindexpressionvalue.tmp
 	                sed "s/^/TF${tissue}=/" ${tmpdir}genebindexpressionvalue.tmp  >> ${tmpdir}genebindexprssval.tmp
 	        done
 
-	        if [ -f ${tmpdir}Genebindexprssval.tmp ];
+	        if [ -f ${tmpdir}Genebindexprssval2.tmp ];
 	        then
-	                paste ${tmpdir}Genebindexprssval.tmp ${tmpdir}genebindexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Genebindexprssval.tmp
+	                paste ${tmpdir}Genebindexprssval2.tmp ${tmpdir}genebindexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Genebindexprssval2.tmp
 	        else
-	                paste ${tmpdir}genebindexprssval.tmp > ${tmpdir}Genebindexprssval.tmp
+	                paste ${tmpdir}genebindexprssval.tmp > ${tmpdir}Genebindexprssval2.tmp
 	        fi
-	        tr '\t' '/' < ${tmpdir}Genebindexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Genebindexprssval.tmp
+	        tr '\t' '/' < ${tmpdir}Genebindexprssval2.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Genebindexprssval2.tmp
 	        rm ${tmpdir}genebindexprssval.tmp
 	done
 	#Combining and adding all the info together
-	paste $input ${tmpdir}Genebindexprssval.tmp ${tmpdir}Geneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
+	paste $input ${tmpdir}Genebindexprssval2.tmp ${tmpdir}Geneexprssval2.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
 
 }
 
@@ -343,7 +343,7 @@ function Duplication_fix () {
 	#This loops over all the lines that appear more than once (same input data, different binding site) and combines them into one line. 
 	for dup in $(cut -d$'\t' -f2 $input | sort | uniq -d); do
 	        grep $dup $input > ${tmpdir}line.tmp
-	        local numberoflines=$(wc -l < ${tmpdir}line.tmp)
+	        #local numberoflines=$(wc -l < ${tmpdir}line.tmp)
 	        local Addedcolumns=""
 		#This goes over every column, takes the value and if it is not the same it adds a "/" between them and adds them to the line
 		#If they are the same only one is added. 
@@ -419,8 +419,8 @@ function Output_share () {
 function Info_Script () {
 	
 	local Validated_Count=$(grep 'Validated' ${output}${InputnameNoExtention}_output.vcf | wc -l)
-	local Total_Noncoding_Count=$(wc -l ${tmpdir}startfile.txt | cut -d' ' -f1 )
-	local Total_Count=$(wc -l ${tmpdir}filenoheader.txt | cut -d' ' -f1 )
+	local Total_Noncoding_Count=$(wc -l ${tmpdir}startfile.txt | sed -e 's/^ *//' |  cut -d' ' -f1 )
+	local Total_Count=$(wc -l ${tmpdir}filenoheader.txt | sed -e 's/^ *//' | cut -d' ' -f1 )
 	local DateOfrun=$(date)
 	local PercentNoncoding=$(echo "scale=4 ; $Total_Noncoding_Count / $Total_Count"  | bc )
 	local PercentNoncodingCorrection=$(echo "scale=2 ; $PercentNoncoding * 100 / 1"  | bc )
@@ -501,7 +501,7 @@ then
         chr="+"
 else
 
-        sed -i 's/^/chr/' ${tmpdir}startfile.txt
+        sed 's/^/chr/' ${tmpdir}startfile.txt > tmp && mv tmp ${tmpdir}startfile.txt
 fi
 
 
