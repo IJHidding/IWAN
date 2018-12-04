@@ -133,7 +133,6 @@ tissuelist
 function Analysis_script () {
 	local inputfile=$1
 	local header=$2
-
 	bedtools sort -i $inputfile > ${tmpdir}tmp && mv ${tmpdir}tmp $inputfile
 	cat $header $inputfile > ${tmpdir}bedtoolsfile.vcf
 	
@@ -342,7 +341,7 @@ function Duplication_fix () {
 	local numberofcolumnsinfile=$(awk '{print NF}' $input | sort -nu | tail -n 1)
 	
 	#This loops over all the lines that appear more than once (same input data, different binding site) and combines them into one line. 
-	for dup in $(cut -d$'\t' -f2 $input | sort -m | uniq -d); do
+	for dup in $(cut -d$'\t' -f2 $input | sort | uniq -d); do
 	        grep $dup $input > ${tmpdir}line.tmp
 	        local numberoflines=$(wc -l < ${tmpdir}line.tmp)
 	        local Addedcolumns=""
@@ -362,12 +361,21 @@ function Duplication_fix () {
 	done
 	
 	#This adds the rest of the lines to the output file.
-	for nodup in $(cut -d$'\t' -f2 $input | sort -m |  uniq -u); do
+	for nodup in $(cut -d$'\t' -f2 $input | sort |  uniq -u); do
 	        grep $nodup $input >> ${tmpdir}noduplicatedlines.tmp
 	done
 	
 	#This combines both output files in one and turns spaces into tabs again. 
-	cat ${tmpdir}duplicatedline.tmp ${tmpdir}noduplicatedlines.tmp > ${tmpdir}output.txt
+	if [ ! -f "${tmpdir}duplicatedline.tmp" ]; 
+	then
+		cat ${tmpdir}noduplicatedlines.tmp > ${tmpdir}output.txt
+	elif [ ! -f "${tmpdir}noduplicatedlines.tmp" ];
+	then
+		cat ${tmpdir}duplicatedline.tmp > ${tmpdir}output.txt
+	else
+		cat ${tmpdir}duplicatedline.tmp ${tmpdir}noduplicatedlines.tmp > ${tmpdir}output.txt
+	fi
+	#cat ${tmpdir}duplicatedline.tmp ${tmpdir}noduplicatedlines.tmp > ${tmpdir}output.txt
 	tr ' ' \\t < ${tmpdir}output.txt > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
 
 	local BindingsiteLoc=$((numberofcolumns+4))
