@@ -45,9 +45,8 @@ Options:
 	-l	Show available tissuetypes.
 	-d	Debugging mode, this does not end the program on errors. And will prevent deletion of any made
 		files, these files can be seen in ./IWAN_output/tmp
-		
+	-o	Select output folder, output will be written in ./IWAN_output unless a different folder is selected.
 
-Output will be written in ./IWAN_output
 ===============================================================================================================
 EOH
 	trap - EXIT
@@ -441,25 +440,28 @@ function Info_Script () {
 ########################################MAIN###################################################################
 
 #Creating the help and input options
-while getopts "i:t:h:l:d" opt;
+while getopts "i:t:h:l:d:o:" opt;
 do
-        case $opt in h)showHelp;; i)input="${OPTARG}";; t)tissue="${OPTARG}";; l)TissueList;; d)debug="ON";;
+        case $opt in h)showHelp;; i)input="${OPTARG}";; t)tissue="${OPTARG}";; l)TissueList;; d)debug="ON";; o)output="${OPTARG}";;
         esac
 done
-
 #Catch error if no input is given
 if [[ -z "${input:-}" ]]; then showHelp ; echo "No input is given" ; fi
 
-#Setting the output folder
-output="IWAN_output/"
-tmpdir="IWAN_output/tmp/"
+#Show output folder and a special case for 
+if [[ -z "${output:-}" ]]; then output="IWAN_output/" ;  echo "No output folder selected, your output folder is IWAN_output/" ; else echo "Your selected output folder is ${output}"; fi
+
+#Setting the output folder, adding a / at the end if it is not there yet. 
+if [ ! "${output}" == "*/" ]; then output=${output}/; fi
+
+tmpdir="${output}tmp/"
 
 #Checks if debugging is on. This will enable the catch_error function is debugging is not on.
 if [ ! "$debug" == "ON"  ]; then trap catch_error ERR; fi
 
 #Creating tmp and output directories to store created files.
-if [ ! -d "$output" ]; then mkdir IWAN_output ; fi
-if [ ! -d "$tmpdir" ]; then mkdir IWAN_output/tmp ; fi
+if [ ! -d "$output" ]; then mkdir ${output} ; fi
+if [ ! -d "$tmpdir" ]; then mkdir ${output}tmp ; fi
 
 #Loading the config file into the script.
 config
