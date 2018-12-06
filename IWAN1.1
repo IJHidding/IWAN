@@ -218,7 +218,7 @@ function Analysis_script () {
 	                done < ${tmpdir}${filename}_output.tmp
 	        fi
 	done
-
+	if [ ! -f ${tmpdir}output.txt  ]; then echo "No variants found in region of interest, exiting the program.." ; catch_error ; fi 
 	#This turns the whitespaces into tabs that are caused by storing the lines in a variable.
 	tr ' ' \\t < ${tmpdir}output.txt > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
 	#This line removes any empty lines or lines with just whitespaces from the file.
