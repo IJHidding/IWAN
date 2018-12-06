@@ -62,7 +62,7 @@ Keep in mind this could lead to slightly different results based on the version.
 After downloading and unpacking the file this command needs to be run to ensure functionality. Where ${Ensemblefile} is the downloaded file. This can be run from the command line. 
 The newly created file is the one that has to be linked in the config. The old file can be removed. 
 "
-sed 's/,/\t/g' ${Ensemblfile} | sed 's/^/chr/' | tail -n +2 | sort -k 1,1 -k2,2n | sed 's/^/chr/'> Ensembl_GRCH37.p13.bed
+sed 's/,/\t/g' mart_export.txt | sed 's/^/chr/' | tail -n +2 | sort -k 1,1 -k2,2n > Ensembl_GRCH37.p13.bed
 "
 
 Prerequisites
@@ -93,6 +93,14 @@ After downloading the databases and the IWAN1.1 and the config files, make sure 
 To test if the installation is correct download the test.vcf from the github page. Then run the program with the command $: sh IWAN1.1.sh -i test.vcf -t 1
 This should generate a new folder called IWAN_output in your current directory. This folder will contain the test_output.vcf file, which when opened should contain a header and 3 variant lines. 
 Only one of the lines should be annotated with: hg19_chr18:12377521-12377531(-)|MA0079.3|A99:C6703:G0:T1932|-768.46|SP1|12376947|AFG3L2|Validated|TFAdipose-Subcutaneous=40.84|Adipose-Subcutaneous=35.055
+
+The output of the log.txt file should look something like this:
+The file run is: test.vcf. 
+This analysis was run on: {Current date and time}
+The total number of variants run is: 2. 
+The total number of Non-coding variants run is: 2. This is 100.00% of all variants run. 
+The total number of variants in validated binding sites is:        1. This is 50.00% of all Non-coding variants run. 
+
 
 Debugging mode is enabled by adding -d when running the program. This will keep the program running through errors and keep all tmp files for reviewing.
 
