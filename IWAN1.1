@@ -298,32 +298,32 @@ function Tissue_types () {
 		
 		#This combines all the expressionvalues of the genes and later the transcriptionfactor and adds them to a file. 
 		#This way they can be pasted together onto the inputfile. 
-	        if [ -f ${tmpdir}Geneexprssval2.tmp ];
+	        if [ -f ${tmpdir}CombinedGeneexprssval.tmp ];
 	        then
-	                paste ${tmpdir}Geneexprssval2.tmp ${tmpdir}geneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Geneexprssval2.tmp
+	                paste ${tmpdir}CombinedGeneexprssval.tmp ${tmpdir}geneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}CombinedGeneexprssval.tmp
 	        else
-	                paste ${tmpdir}geneexprssval.tmp > ${tmpdir}Geneexprssval2.tmp
+	                paste ${tmpdir}geneexprssval.tmp > ${tmpdir}CombinedGeneexprssval.tmp
 	        fi
 
 		#Separation of the different expressionvalues by a "/".
-	        tr '\t' '/' < ${tmpdir}Geneexprssval2.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Geneexprssval2.tmp
+	        tr '\t' '/' < ${tmpdir}CombinedGeneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}CombinedGeneexprssval.tmp
 	        rm ${tmpdir}geneexprssval.tmp
 	        for gene in $(cut -d$'\t' -f${columnwithTFgenename} $input); do
 	                grep  $'\t'${gene}$'\t' $genexprss | cut -d$'\t' -f${numb} > ${tmpdir}genebindexpressionvalue.tmp
 	                sed "s/^/TF${tissue}=/" ${tmpdir}genebindexpressionvalue.tmp  >> ${tmpdir}genebindexprssval.tmp
 	        done
 
-	        if [ -f ${tmpdir}Genebindexprssval2.tmp ];
+	        if [ -f ${tmpdir}CombinedGenebindexprssval.tmp ];
 	        then
-	                paste ${tmpdir}Genebindexprssval2.tmp ${tmpdir}genebindexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Genebindexprssval2.tmp
+	                paste ${tmpdir}CombinedGenebindexprssval.tmp.tmp ${tmpdir}genebindexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}CombinedGenebindexprssval.tmp.tmp
 	        else
-	                paste ${tmpdir}genebindexprssval.tmp > ${tmpdir}Genebindexprssval2.tmp
+	                paste ${tmpdir}genebindexprssval.tmp > ${tmpdir}CombinedGenebindexprssval.tmp.tmp
 	        fi
-	        tr '\t' '/' < ${tmpdir}Genebindexprssval2.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}Genebindexprssval2.tmp
+	        tr '\t' '/' < ${tmpdir}CombinedGenebindexprssval.tmp.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}CombinedGenebindexprssval.tmp
 	        rm ${tmpdir}genebindexprssval.tmp
 	done
 	#Combining and adding all the info together
-	paste $input ${tmpdir}Genebindexprssval2.tmp ${tmpdir}Geneexprssval2.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
+	paste $input ${tmpdir}CombinedGenebindexprssval.tmp.tmp ${tmpdir}CombinedGeneexprssval.tmp > ${tmpdir}tmp && mv ${tmpdir}tmp ${tmpdir}output.txt
 
 }
 
