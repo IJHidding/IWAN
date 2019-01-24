@@ -440,7 +440,7 @@ function Info_Script () {
 ########################################MAIN###################################################################
 
 #Creating the help and input options
-while getopts "i:t:h:ld:o:" opt;
+while getopts "i:t:h:ldo:" opt;
 do
         case $opt in h)showHelp;; i)input="${OPTARG}";; t)tissue="${OPTARG}";; l)TissueList;; d)debug="ON";; o)output="${OPTARG}";;
         esac
