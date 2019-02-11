@@ -498,7 +498,7 @@ grep -v '#' $fixedinput | grep '5_prime_UTR'  | tr ' ' '_' >> ${tmpdir}startfile
 
 
 #checks if the input file has "1" or "chr1" as chromosome annotation. 
-if [ ! -z "$(grep 'chr' $fixedinput)" ];
+if [ ! -z "$(grep '^chr' $fixedinput)" ];
 then
         chr="+"
 else
